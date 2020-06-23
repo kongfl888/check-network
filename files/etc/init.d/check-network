@@ -1,0 +1,38 @@
+#!/bin/sh /etc/rc.common
+
+# [K] 2020
+# https://github.com/kongfl888
+
+START=95
+STOP=01
+
+run_check() {
+    chmod +x /usr/bin/check_network
+    /usr/bin/check_network > /dev/null &
+}
+
+stop_check() {
+    pcount=$(echo `pgrep -f "/usr/bin/check_network"` |wc -w)
+    echo "$pcount"
+    if [ $pcount -gt 0 ]; then
+
+        for pid in $(echo `pgrep -f "/usr/bin/check_network"`)
+        do
+          kill $pid
+        done
+    fi
+    logger "Check Network: $pcount process stopped." > /dev/null
+}
+
+start(){
+    stop_check > /dev/null
+    run_check
+}
+
+restart() {
+	start
+}
+
+stop(){
+    stop_check
+}
