@@ -15,7 +15,7 @@ define Package/check-network
    SECTION:=utils
    CATEGORY:=Utilities
    TITLE:=Check Network for OpenWrt
-   DEPENDS:=+bash
+   DEPENDS:=+bash +jsonfilter
    MAINTAINER:=kongfl888 <kongfl888@outlook.com>
    PKGARCH:=all
 endef
