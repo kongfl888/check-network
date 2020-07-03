@@ -1,0 +1,20 @@
+#!/bin/sh
+
+[ "$ACTION" = "ifup" -o "$ACTION" = "ifupdate" ] || exit 0
+
+[ "$INTERFACE" = "wan" ] || exit 0
+
+sleep 60s
+
+w=0
+
+ifconfig pppoe-wan >/dev/nul 2>&1 && w=0 || w=1
+
+if [ "$w" == "0" ]; then
+/etc/init.d/firewall reload
+else
+sleep 10s
+/etc/init.d/firewall restart
+fi
+
+logger "Check network: firewall reloaded due to $ACTION of $INTERFACE ($DEVICE)"

@@ -51,6 +51,7 @@ landown=0
 wandown=0
 wpending=0
 werror=0
+firstreload=0
 
 while :; do
     # 1st check
@@ -160,6 +161,12 @@ while :; do
     fi
 
     if [ $fail_countl -eq 0 -a $fail_countw -eq 0 ]; then
+        if [ $firstreload -eq 0 ]; then
+            firstreload=1
+            /etc/init.d/firewall reload >/dev/null 2>&1
+            logger "Check Network: part1 of 2nd Check is ok。part2 is started."
+            echo $DATE" Check Network: part1 of 2nd Check is ok。firewall is reloaded." >> /tmp/check_network.log
+        fi
         sleep $okwait
         continue
     fi
