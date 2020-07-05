@@ -205,6 +205,11 @@ while :; do
     fail_count=$(($fail_countl+$fail_countw))
 
     if [ $fail_count -ge 5 ]; then
+        if [ $retime -gt 1190 ]; then
+            reboot
+            exit 0
+        fi
+
         sleep $retime
         retime=$((retime + 60))
 
