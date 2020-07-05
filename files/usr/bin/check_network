@@ -187,9 +187,9 @@ while :; do
     if [ $fail_countl -eq 0 -a $fail_countw -eq 0 ]; then
         if [ $firstreload -eq 0 ]; then
             firstreload=1
-            /etc/init.d/firewall reload >/dev/null 2>&1
-            logger "Check Network: part1 of 2nd Check is ok。part2 is started."
-            echo $DATE" Check Network: part1 of 2nd Check is ok。firewall is reloaded." >> /tmp/check_network.log
+            /etc/init.d/firewall reload >/dev/null 2>&1 &
+            logger "Check Network: part1 of 2nd Check is ok. part2 is started."
+            echo $DATE" Check Network: part1 of 2nd Check is ok. firewall is reloaded." >> /tmp/check_network.log
         fi
         retime=5
         sleep $okwait
@@ -254,7 +254,7 @@ while :; do
         DATE=`date +[%Y-%m-%d]%H:%M:%S`
         echo $DATE" Check Network: Network problem! Firewall reloading..." >> /tmp/check_network.log
         logger 'Check Network: Network problem! Firewall reloading...'
-        /etc/init.d/firewall reload >/dev/null 2>&1
+        /etc/init.d/firewall reload >/dev/null 2>&1 &
 
         sleep $retime
         retime=$((retime + 60))
