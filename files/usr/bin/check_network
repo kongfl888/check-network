@@ -38,6 +38,15 @@ get_eth_error() {
   echo $if_status | jsonfilter -e "@['errors']"
 }
 
+gopinghost() {
+    pinghost="114.114.114.114"
+    if ping -W 1 -c 1 "$pinghost" >/dev/null 2>&1; then
+        echo "0"
+    else
+        echo "1"
+    fi
+}
+
 DATE=`date +[%Y-%m-%d]%H:%M:%S`
 
 logger 'Check Network: started!'
@@ -52,6 +61,8 @@ wandown=0
 wpending=0
 werror=0
 firstreload=0
+goping=0
+pingerror=1
 
 while :; do
     # 1st check
@@ -108,6 +119,7 @@ done
 
 fail_countl=0
 fail_countw=0
+retime=5
 
 while :; do
     # 2nd check
@@ -160,6 +172,18 @@ while :; do
         fi
     fi
 
+    if [ $goping -eq 0 -a $(gopinghost) -eq 0 ]; then
+        goping=1
+    elif [ $goping -eq 1 -a $fail_countw -eq 0 -a $(gopinghost) -eq 1 ]; then
+        if [ $pingerror -lt 3 ]; then
+            fail_countw=6
+            pingerror=$((pingerror + 1))
+        else
+            goping=0
+            pingerror=1
+        fi
+    fi
+
     if [ $fail_countl -eq 0 -a $fail_countw -eq 0 ]; then
         if [ $firstreload -eq 0 ]; then
             firstreload=1
@@ -167,6 +191,7 @@ while :; do
             logger "Check Network: part1 of 2nd Check is ok。part2 is started."
             echo $DATE" Check Network: part1 of 2nd Check is ok。firewall is reloaded." >> /tmp/check_network.log
         fi
+        retime=5
         sleep $okwait
         continue
     fi
@@ -180,6 +205,9 @@ while :; do
     fail_count=$(($fail_countl+$fail_countw))
 
     if [ $fail_count -ge 5 ]; then
+        sleep $retime
+        retime=$((retime + 60))
+
         # try again!
         wpending=0
         werror=0
@@ -212,17 +240,24 @@ while :; do
         elif [ $werror -eq 0 ]; then
             mokw=1
         fi
+
+        if [ $goping -eq 1 -a $mokw -eq 1 -a $(gopinghost) -eq 1 ]; then
+            mokw=0
+        fi
+
         if [ $mokl -eq 1 -a $mokw -eq 1 ]; then
+            retime=5
             sleep $okwait
             continue
         fi
 
         DATE=`date +[%Y-%m-%d]%H:%M:%S`
-
         echo $DATE" Check Network: Network problem! Firewall reloading..." >> /tmp/check_network.log
         logger 'Check Network: Network problem! Firewall reloading...'
         /etc/init.d/firewall reload >/dev/null 2>&1
-        sleep 30
+
+        sleep $retime
+        retime=$((retime + 60))
 
         mokl=0
         mokw=0
@@ -246,16 +281,21 @@ while :; do
             *permitted* ) mokw=0 ;;
         esac
 
+        if [ $goping -eq 1 -a $mokw -eq 1 -a $(gopinghost) -eq 1 ]; then
+            mokw=0
+        fi
+
         if [ $mokl -eq 1 -a $mokw -eq 1 ]; then
+            retime=5
             sleep $okwait
             continue
         fi
 
         DATE=`date +[%Y-%m-%d]%H:%M:%S`
-
         echo $DATE" Check Network: Network problem! Network reloading..." >> /tmp/check_network.log
         logger 'Check Network: Network problem! Network reloading...'
         /etc/init.d/network restart >/dev/null 2>&1
+        retime=$((retime + 180))
         sleep 90
     fi
 done
