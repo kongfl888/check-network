@@ -11,10 +11,10 @@ w=0
 ifconfig pppoe-wan >/dev/nul 2>&1 && w=0 || w=1
 
 if [ "$w" == "0" ]; then
-/etc/init.d/firewall reload
+fw3 reload &
 else
 sleep 10s
-/etc/init.d/firewall restart
+fw3 restart &
 fi
 
 logger "Check network: firewall reloaded due to $ACTION of $INTERFACE ($DEVICE)"
