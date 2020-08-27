@@ -4,6 +4,10 @@
 
 [ "$INTERFACE" = "wan" ] || exit 0
 
+pcount=$(echo `pgrep -f "/usr/bin/check_network"` |wc -w)
+
+[ $pcount -eq 0 ] && exit
+
 sleep 60s
 
 w=0
