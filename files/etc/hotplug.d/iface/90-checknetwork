@@ -12,14 +12,14 @@ sleep 60s
 
 w=0
 
-fw=`ls /sbin/fw* | head -n 1`
+fw=`ls -1 /sbin/fw* |sed 's/ /\n/'|sed '/^$/d'|sort -nr| head -n 1`
 [ -n "$fw" ] || fw=fw3
 
 ifconfig pppoe-wan >/dev/nul 2>&1 && w=0 || w=1
 
 if [ "$w" == "0" ]; then
-$fw flush >/dev/null 2>&1
-$fw restart >/dev/null 2>&1 &
+#$fw flush >/dev/null 2>&1
+ps|grep fw|grep -v grep || ($fw restart &)
 else
 sleep 10s
 $fw reload >/dev/null 2>&1 &
